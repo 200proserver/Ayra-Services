@@ -49,18 +49,18 @@ def create_affidavit():
     try:
         data = request.get_json()
         template_key = data.get('template_key')
-        replacements = data.gfet('replacements', {})
+        replacements = data.get('replacements', {})
 
         if not template_key or template_key not in AFFIDAVIT_CONFIG:
             return jsonify({'success': False, 'message': 'Invalid template type'}), 400
 
         # Ensure deponent/subject name is populated correctly from new name
         if 'NEW_NAME' in replacements and 'UPDATE_NAME' not in replacements:
-            replacements['UPDATE_NAME'] = replacements['NEW_NAME']
+            replacements['UPDATE_NAME'] = replacements.get('NEW_NAME', '')
 
-        # Fallback child name to new name automatically to fit Word template requirements
+        # Fallback child name to new name automatically for minor templates
         if 'NEW_NAME' in replacements and 'CHILD_NAME' not in replacements:
-            replacements['CHILD_NAME'] = replacements['NEW_NAME']
+            replacements['CHILD_NAME'] = replacements.get('NEW_NAME', '')
 
         # Smart pronoun derivation for HE_SHE / HIS_HER from SON-DAUGHTER
         sd_val = (replacements.get('SON-DAUGHTER') or '').lower().strip()
@@ -80,7 +80,9 @@ def create_affidavit():
             replacements['HE_SHE'] = 'she'
             replacements['HIS_HER'] = 'her'
 
+        # Resolve primary name for database registry index
         primary_name = (
+            replacements.get('NEW_NAME') or 
             replacements.get('UPDATE_NAME') or 
             replacements.get('CHILD_NAME') or 
             replacements.get('OLD_NAME') or 
@@ -88,39 +90,7 @@ def create_affidavit():
             'UNNAMED'
         ).upper().strip()
 
-                # Smart field processing: auto ALPHA_DATE from NUM_DATE
-        if 'NUM_DATE' in replacements and replacements['NUM_DATE']:
-            try:
-                num_date_val = replacements['NUM_DATE']
-                # Handle both YYYY-MM-DD and DD/MM/YYYY formats
-                if '-' in num_date_val:
-                    dt = datetime.strptime(num_date_val, '%Y-%m-%d')
-                elif '/' in num_date_val:
-                    dt = datetime.strptime(num_date_val, '%d/%m/%Y')
-                else:
-                    dt = None
-
-                if dt:
-                    day = dt.day
-                    suffix = 'TH'
-                    if day % 10 == 1 and day % 100 != 11: suffix = 'ST'
-                    elif day % 10 == 2 and day % 100 != 12: suffix = 'ND'
-                    elif day % 10 == 3 and day % 100 != 13: suffix = 'RD'
-                    months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
-                              'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER']
-                    replacements['ALPHA_DATE'] = f"{day}{suffix} DAY OF {months[dt.month-1]} {dt.year}"
-            except Exception as e:
-                logger.warning(f"Failed to auto-generate ALPHA_DATE: {e}")
-
-        # Smart pronoun derivation for HE_SHE / HIS_HER from SON-DAUGHTER
-        sd_val = (replacements.get('SON-DAUGHTER') or '').lower().strip()
-        if sd_val == 'son':
-            replacements['HE_SHE'] = 'he'
-            replacements['HIS_HER'] = 'his'
-        elif sd_val == 'daughter':
-            replacements['HE_SHE'] = 'she'
-            replacements['HIS_HER'] = 'her'
-
+        # Format any date replacements to DD/MM/YYYY
         from helpers.text_helpers import format_date_to_ddmmyyyy
         for field in AFFIDAVIT_CONFIG[template_key]['fields']:
             if field['type'] == 'date' and field['id'] in replacements:
@@ -139,8 +109,9 @@ def create_affidavit():
         return jsonify({'success': True, 'message': 'Affidavit saved successfully!', 'record': record.to_dict()})
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error creating affidavit: {str(e)}")
+        logger.error(f"Error creating affidavit: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'message': str(e)}), 500
+
 
 @affidavit_bp.route('/api/affidavits/<id>', methods=['PUT'])
 @admin_required
@@ -156,13 +127,13 @@ def update_affidavit(id):
 
         # Ensure deponent/subject name is populated correctly from new name
         if 'NEW_NAME' in replacements and 'UPDATE_NAME' not in replacements:
-            replacements['UPDATE_NAME'] = replacements['NEW_NAME']
+            replacements['UPDATE_NAME'] = replacements.get('NEW_NAME', '')
 
-        # Fallback child name to new name automatically to fit Word template requirements
+        # Fallback child name to new name automatically for minor templates
         if 'NEW_NAME' in replacements and 'CHILD_NAME' not in replacements:
-            replacements['CHILD_NAME'] = replacements['NEW_NAME']
+            replacements['CHILD_NAME'] = replacements.get('NEW_NAME', '')
 
-         # Smart pronoun derivation for HE_SHE / HIS_HER from SON-DAUGHTER
+        # Smart pronoun derivation for HE_SHE / HIS_HER from SON-DAUGHTER
         sd_val = (replacements.get('SON-DAUGHTER') or '').lower().strip()
         if sd_val == 'son':
             replacements['HE_SHE'] = 'he'
@@ -180,7 +151,9 @@ def update_affidavit(id):
             replacements['HE_SHE'] = 'she'
             replacements['HIS_HER'] = 'her'
 
+        # Resolve primary name for database registry index
         primary_name = (
+            replacements.get('NEW_NAME') or 
             replacements.get('UPDATE_NAME') or 
             replacements.get('CHILD_NAME') or 
             replacements.get('OLD_NAME') or 
@@ -188,39 +161,7 @@ def update_affidavit(id):
             'UNNAMED'
         ).upper().strip()
 
-                # Smart field processing: auto ALPHA_DATE from NUM_DATE
-        if 'NUM_DATE' in replacements and replacements['NUM_DATE']:
-            try:
-                num_date_val = replacements['NUM_DATE']
-                # Handle both YYYY-MM-DD and DD/MM/YYYY formats
-                if '-' in num_date_val:
-                    dt = datetime.strptime(num_date_val, '%Y-%m-%d')
-                elif '/' in num_date_val:
-                    dt = datetime.strptime(num_date_val, '%d/%m/%Y')
-                else:
-                    dt = None
-
-                if dt:
-                    day = dt.day
-                    suffix = 'TH'
-                    if day % 10 == 1 and day % 100 != 11: suffix = 'ST'
-                    elif day % 10 == 2 and day % 100 != 12: suffix = 'ND'
-                    elif day % 10 == 3 and day % 100 != 13: suffix = 'RD'
-                    months = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE',
-                              'JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER']
-                    replacements['ALPHA_DATE'] = f"{day}{suffix} DAY OF {months[dt.month-1]} {dt.year}"
-            except Exception as e:
-                logger.warning(f"Failed to auto-generate ALPHA_DATE: {e}")
-
-        # Smart pronoun derivation for HE_SHE / HIS_HER from SON-DAUGHTER
-        sd_val = (replacements.get('SON-DAUGHTER') or '').lower().strip()
-        if sd_val == 'son':
-            replacements['HE_SHE'] = 'he'
-            replacements['HIS_HER'] = 'his'
-        elif sd_val == 'daughter':
-            replacements['HE_SHE'] = 'she'
-            replacements['HIS_HER'] = 'her'
-
+        # Format any date replacements to DD/MM/YYYY
         from helpers.text_helpers import format_date_to_ddmmyyyy
         for field in AFFIDAVIT_CONFIG[template_key]['fields']:
             if field['type'] == 'date' and field['id'] in replacements:
@@ -234,7 +175,7 @@ def update_affidavit(id):
         return jsonify({'success': True, 'message': 'Affidavit updated successfully!', 'record': record.to_dict()})
     except Exception as e:
         db.session.rollback()
-        logger.error(f"Error updating affidavit: {str(e)}")
+        logger.error(f"Error updating affidavit: {str(e)}", exc_info=True)
         return jsonify({'success': False, 'message': str(e)}), 500
 
 @affidavit_bp.route('/api/affidavits/<id>', methods=['DELETE'])
