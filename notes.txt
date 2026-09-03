@@ -1,0 +1,53 @@
+aadhaar_reactivation:
+UPDATE_NAME 
+UPDATE_RELATION
+FATHER-SPOUSE_NAME
+UPDATE_ADDRESS
+AADHAAR_NUMBER
+EID_NUMBER
+NUM_DATE
+
+dob_correction:
+UPDATE_NAME 
+UPDATE_RELATION
+FATHER-SPOUSE_NAME
+UPDATE_ADDRESS
+AADHAAR_NUMBER
+C_DOB
+R_DOB
+NUM_DATE
+CHILD_NAME
+
+passport_name_change:
+UPDATE_NAME
+NEW_NAME
+OLD_NAME
+UPDATE_AGE
+UPDATE_RELATION
+FATHER-SPOUSE_NAME
+UPDATE_ADDRESS
+NUM_DATE
+ALPHA_DATE 
+CHILD_NAME
+CHILD_DOB
+
+rental_agreement: (WE WILL UPDATE THIS LATER)
+
+
+
+
+
+updation in aadhaar_reactivation for minor case:
+let these three fields be in a single line: Parent / Guardian Name*, Relationship*, Father / Husband Name *
+after Current Address* include 
+1. CHILD_NAME, CHILD_DOB
+
+under passport name change for adult:
+remove the: Deponent Name (Current),
+include UPDATE_AGE (2 options like entering the age directly, like 28,68..., or by dob: DD/MM/YYYY)
+Alphabetic Date should be taken automatically
+
+for passport name change for minor:
+first guardian details( name (UPDATE_NAME), UPDATE_RELATION Relationship (Father-SPOUSE_NAME))
+then child's details
+update child's OLD_NAME, NEW_NAME, SON-DAUGHTER, HE_SHE, HIS_HER
