@@ -395,7 +395,10 @@ class AffidavitRecord(db.Model):
     created_by = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False, index=True)
     template_key = db.Column(db.String(50), nullable=False)
     primary_name = db.Column(db.String(200)) # e.g. Deponent/Subject Name
-    _replacements = db.Column('replacements', db.Text)
+    
+    # CHANGED: Use db.JSON instead of db.Text
+    _replacements = db.Column('replacements', db.JSON)
+    
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     modified_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc),
                             onupdate=lambda: datetime.now(timezone.utc))
@@ -423,9 +426,13 @@ class AffidavitRecord(db.Model):
         if value is None:
             self._replacements = None
         elif isinstance(value, str):
-            self._replacements = value
+            try:
+                self._replacements = json_lib.loads(value)
+            except Exception:
+                self._replacements = value
         else:
-            self._replacements = json_lib.dumps(value)
+            self._replacements = value # Store dictionary directly
+
 
     def to_dict(self):
         return {
