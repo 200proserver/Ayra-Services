@@ -147,9 +147,12 @@ class Draft(db.Model):
     template_type = db.Column(db.String(50), nullable=False)
     template_name = db.Column(db.String(100))
     old_name = db.Column(db.String(200))
-    _replacements = db.Column('replacements', db.Text)
-    _preview_data = db.Column('preview_data', db.Text)
-    _generated_files = db.Column('generated_files', db.Text)
+    
+    # CHANGED: Use db.JSON instead of db.Text to match Postgres
+    _replacements = db.Column('replacements', db.JSON)
+    _preview_data = db.Column('preview_data', db.JSON)
+    _generated_files = db.Column('generated_files', db.JSON)
+    
     status = db.Column(db.String(20), default='draft', index=True)
     output_folder = db.Column(db.String(500))
     published = db.Column(db.Boolean, default=False)
@@ -181,9 +184,12 @@ class Draft(db.Model):
         if value is None:
             self._replacements = None
         elif isinstance(value, str):
-            self._replacements = value
+            try:
+                self._replacements = json_lib.loads(value)
+            except Exception:
+                self._replacements = value
         else:
-            self._replacements = json_lib.dumps(value)
+            self._replacements = value # Store dictionary directly
 
     @property
     def preview_data(self):
@@ -201,9 +207,12 @@ class Draft(db.Model):
         if value is None:
             self._preview_data = None
         elif isinstance(value, str):
-            self._preview_data = value
+            try:
+                self._preview_data = json_lib.loads(value)
+            except Exception:
+                self._preview_data = value
         else:
-            self._preview_data = json_lib.dumps(value)
+            self._preview_data = value # Store dictionary directly
 
     @property
     def generated_files(self):
@@ -221,9 +230,12 @@ class Draft(db.Model):
         if value is None:
             self._generated_files = None
         elif isinstance(value, str):
-            self._generated_files = value
+            try:
+                self._generated_files = json_lib.loads(value)
+            except Exception:
+                self._generated_files = value
         else:
-            self._generated_files = json_lib.dumps(value)
+            self._generated_files = value # Store list directly
 
     def to_dict(self):
         try:
