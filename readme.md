@@ -30,59 +30,6 @@ The original single `app.py` (4000+ lines) has been split into clean, focused mo
 | Change app settings/config | `config.py` |
 | Change Flask app init | `app.py` |
 
----
-
-## Complete Folder Structure
-Ayra-Services/
-│
-├── app.py # Flask app init + blueprint registration
-├── config.py # App settings, template config, constants
-├── models.py # Database models (User, Draft, PhoneTracking)
-├── otp_service.py # OTP generation and verification
-├── phone_numbers.csv # Source of phone numbers for tracking
-│
-├── fonts/ # Custom fonts for LibreOffice PDF generation
-│ └── *.ttf / *.otf
-│
-├── templates/ # HTML Jinja2 templates (Flask views)
-│ ├── index.html
-│ ├── dashboard.html
-│ ├── admin_dashboard.html
-│ ├── super_admin_dashboard.html
-│ ├── namechangeservice.html
-│ ├── setup_admin.html
-│ ├── setup_super_admin.html
-│ └── setup_success.html
-│
-├── static/ # CSS, JS, images
-│
-├── helpers/ # Pure utility functions (no Flask, no DB)
-│ ├── init.py # Exports all helpers
-│ ├── text_helpers.py # Text formatting utilities
-│ ├── docx_helpers.py # DOCX read/write/replace utilities
-│ └── html_helpers.py # HTML generation for print/preview
-│
-├── services/ # Business logic (no Flask routes)
-│ ├── init.py # Exports all services
-│ ├── phone_service.py # Phone number tracking and management
-│ ├── template_service.py # Template folder resolution
-│ ├── document_service.py # Document generation and CD preview
-│ └── pdf_service.py # LibreOffice PDF conversion
-│
-└── routes/ # Flask Blueprints (all route handlers)
-├── init.py # Exports all blueprints + decorators
-├── auth.py # Login, logout, register, profile
-├── setup.py # First-time setup routes
-├── main.py # Landing page (index/home)
-├── dashboard.py # User dashboard
-├── super_admin.py # Super admin dashboard + API
-├── admin.py # Admin dashboard + document management
-├── drafts.py # Draft CRUD + CD preview for users
-├── documents.py # Document generation + preview
-└── phone.py # Phone number API
-
----
-
 ## File-by-File Breakdown
 
 ---
